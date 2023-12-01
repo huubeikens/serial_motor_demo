@@ -72,7 +72,12 @@ class MotorDriver(Node):
 
         print(f"Connecting to port {self.serial_port} at {self.baud_rate}.")
         self.conn = serial.Serial(self.serial_port, self.baud_rate, timeout=1.0)
+        
+        # Add a 2 second delay otherwise the serial comm will not work
+        # See issue: https://arduino.stackexchange.com/questions/58061/problem-sending-string-with-python-to-arduino-through-serial-port/58084#58084
+        time.sleep(2)
         print(f"Connected to {self.conn}")
+        
         
 
         
@@ -156,7 +161,7 @@ class MotorDriver(Node):
                 value += c
 
             value = value.strip('\r')
-
+  
             if (self.debug_serial_cmds):
                 print("Received: " + value)
             return value
@@ -164,14 +169,15 @@ class MotorDriver(Node):
             self.mutex.release()
 
     def close_conn(self):
-        self.conn.close()
+        print("close_conn")
+        #self.conn.close()
 
 
 
 def main(args=None):
     
     rclpy.init(args=args)
-
+   
     motor_driver = MotorDriver()
 
     rate = motor_driver.create_rate(2)
@@ -183,5 +189,4 @@ def main(args=None):
     motor_driver.close_conn()
     motor_driver.destroy_node()
     rclpy.shutdown()
-
 
