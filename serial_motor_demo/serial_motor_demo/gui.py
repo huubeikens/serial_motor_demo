@@ -7,7 +7,7 @@ import math
 from serial_motor_demo_msgs.msg import MotorCommand
 from serial_motor_demo_msgs.msg import MotorVels
 from serial_motor_demo_msgs.msg import EncoderVals
-
+from serial_motor_demo_msgs.msg import MasterRelayCommand
 
 class MotorGui(Node):
 
@@ -15,6 +15,7 @@ class MotorGui(Node):
         super().__init__('motor_gui')
 
         self.publisher = self.create_publisher(MotorCommand, 'motor_command', 10)
+        self.publisher = self.create_publisher(MasterRelayCommand, 'master_relay_command', 10)
 
         self.speed_sub = self.create_subscription(
             MotorVels,
@@ -34,6 +35,7 @@ class MotorGui(Node):
         root.pack(fill=BOTH, expand=True)
 
         
+        self.turn_on = False
 
         Label(root, text="Serial Motor GUI").pack()
 
@@ -77,8 +79,9 @@ class MotorGui(Node):
         Button(motor_btns_frame, text='Send Cont.', command=self.show_values, state="disabled").pack(side=LEFT)
         Button(motor_btns_frame, text='Stop Send', command=self.show_values, state="disabled").pack(side=LEFT)
         Button(motor_btns_frame, text='Stop Mot', command=self.stop_motors).pack(side=LEFT)
+        self.relay_btn = Button(motor_btns_frame, text='Relay on', command=self.toggle_master_relay)
+        self.relay_btn.pack(side=LEFT)
         
-
         enc_frame = Frame(root)
         enc_frame.pack(fill=X)
 
@@ -99,7 +102,6 @@ class MotorGui(Node):
         self.mot_2_spd_lbl = Label(enc_frame, text="XXX")
         self.mot_2_spd_lbl.pack(side=LEFT)
 
-
         self.set_mode(True)
 
 
@@ -116,6 +118,18 @@ class MotorGui(Node):
             msg.mot_1_req_rad_sec = float(self.m1.get()*2*math.pi)
             msg.mot_2_req_rad_sec = float(self.m2.get()*2*math.pi)
 
+        self.publisher.publish(msg)
+
+    def toggle_master_relay(self):
+        if (self.turn_on):
+            # Turn from True to False
+            self.turn_on = False
+            self.relay_btn.config(text="Mst Relay on")
+        else:
+            self.turn_on = True
+            self.relay_btn.config(text="Mst Relay off")
+        msg = MasterRelayCommand()
+        msg.turn_on = self.turn_on
         self.publisher.publish(msg)
 
     def stop_motors(self):
@@ -151,8 +165,6 @@ class MotorGui(Node):
     def encoder_val_callback(self, encoder_vals):
         self.mot_1_enc_lbl.config(text=f"{encoder_vals.mot_1_enc_val}")
         self.mot_2_enc_lbl.config(text=f"{encoder_vals.mot_2_enc_val}")
-
-
 
     def switch_mode(self):
         self.set_mode(not self.pwm_mode)
