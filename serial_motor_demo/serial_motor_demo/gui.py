@@ -14,8 +14,8 @@ class MotorGui(Node):
     def __init__(self):
         super().__init__('motor_gui')
 
-        self.publisher = self.create_publisher(MotorCommand, 'motor_command', 10)
-        self.publisher = self.create_publisher(MasterRelayCommand, 'master_relay_command', 10)
+        self.master_relay_command_publisher = self.create_publisher(MasterRelayCommand, 'master_relay_command', 10)
+        self.motor_command_publisher = self.create_publisher(MotorCommand, 'motor_command', 10)
 
         self.speed_sub = self.create_subscription(
             MotorVels,
@@ -111,6 +111,7 @@ class MotorGui(Node):
     def send_motor_once(self):
         msg = MotorCommand()
         msg.is_pwm = self.pwm_mode
+        print(f"send_motor_once response values {self.m1.get()} {self.m2.get()}")
         if (self.pwm_mode):
             msg.mot_1_req_rad_sec = float(self.m1.get())
             msg.mot_2_req_rad_sec = float(self.m2.get())
@@ -118,7 +119,7 @@ class MotorGui(Node):
             msg.mot_1_req_rad_sec = float(self.m1.get()*2*math.pi)
             msg.mot_2_req_rad_sec = float(self.m2.get()*2*math.pi)
 
-        self.publisher.publish(msg)
+        self.motor_command_publisher.publish(msg)
 
     def toggle_master_relay(self):
         if (self.turn_on):
@@ -130,14 +131,14 @@ class MotorGui(Node):
             self.relay_btn.config(text="Mst Relay off")
         msg = MasterRelayCommand()
         msg.turn_on = self.turn_on
-        self.publisher.publish(msg)
+        self.master_relay_command_publisher.publish(msg)
 
     def stop_motors(self):
         msg = MotorCommand()
         msg.is_pwm = self.pwm_mode
         msg.mot_1_req_rad_sec = 0.0
         msg.mot_2_req_rad_sec = 0.0
-        self.publisher.publish(msg)
+        self.motor_command_publisher.publish(msg)
 
     def set_mode(self, new_mode):
         self.pwm_mode = new_mode
