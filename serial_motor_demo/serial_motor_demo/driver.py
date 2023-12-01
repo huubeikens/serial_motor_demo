@@ -8,9 +8,6 @@ import math
 import serial
 from threading import Lock
 
-
-Test
-
 class MotorDriver(Node):
 
     def __init__(self):
