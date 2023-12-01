@@ -6,6 +6,7 @@ from serial_motor_demo_msgs.msg import EncoderVals
 import time
 import math
 import serial
+import json
 from threading import Lock
 
 class MotorDriver(Node):
@@ -83,15 +84,25 @@ class MotorDriver(Node):
     # Raw serial commands
     
     def send_pwm_motor_command(self, mot_1_pwm, mot_2_pwm):
-        self.send_command(f"o {int(mot_1_pwm)} {int(mot_2_pwm)}")
+        resp = self.send_command(f"m {int(mot_1_pwm)} {int(mot_2_pwm)}")
+        print(f"send_pwm_motor_command response is {resp}")
 
     def send_feedback_motor_command(self, mot_1_ct_per_loop, mot_2_ct_per_loop):
-        self.send_command(f"m {int(mot_1_ct_per_loop)} {int(mot_2_ct_per_loop)}")
+        resp = self.send_command(f"m {int(mot_1_ct_per_loop)} {int(mot_2_ct_per_loop)}")
+        print(f"send_feedback_motor_command response is {resp}")
 
     def send_encoder_read_command(self):
-        resp = self.send_command(f"e")
+        resp = self.send_command(f"s")
         if resp:
-            return [int(raw_enc) for raw_enc in resp.split()]
+            print(f"Status response is {resp}")
+            try:
+                respJSON = json.loads(resp)
+                print(f"JSON message is {respJSON['m']}")
+                return respJSON["m"]
+            except:
+                #ignore
+                print()
+
         return []
 
 
