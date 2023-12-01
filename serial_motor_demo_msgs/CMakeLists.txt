@@ -43,6 +43,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/MotorCommand.msg"
   "msg/MotorVels.msg"
   "msg/EncoderVals.msg"
+  "msg/MasterRelayCommand.msg"
 )
 
 
