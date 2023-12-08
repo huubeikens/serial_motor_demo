@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from serial_motor_demo_msgs.msg import MotorCommand
+from serial_motor_demo_msgs.msg import MasterRelayCommand
 from serial_motor_demo_msgs.msg import MotorVels
 from serial_motor_demo_msgs.msg import EncoderVals
 import time
@@ -40,8 +41,6 @@ class MotorDriver(Node):
         if (self.debug_serial_cmds):
             print("Serial debug enabled")
 
-
-
         # Setup topics & services
 
         self.subscription = self.create_subscription(
@@ -50,6 +49,12 @@ class MotorDriver(Node):
             self.motor_command_callback,
             10)
 
+        self.subscription = self.create_subscription(
+            MasterRelayCommand,
+            'master_relay_command',
+            self.master_relay_command_callback,
+            10)
+        
         self.speed_pub = self.create_publisher(MotorVels, 'motor_vels', 10)
 
         self.encoder_pub = self.create_publisher(EncoderVals, 'encoder_vals', 10)
@@ -117,6 +122,12 @@ class MotorDriver(Node):
             mot1_ct_per_loop = motor_command.mot_1_req_rad_sec * scaler
             mot2_ct_per_loop = motor_command.mot_2_req_rad_sec * scaler
             self.send_feedback_motor_command(mot1_ct_per_loop, mot2_ct_per_loop)
+
+    def master_relay_command_callback(self, master_relay_command):
+        if (master_relay_command.turn_on):
+            self.send_command(f"r on")
+        else:
+            self.send_command(f"r off")
 
     def check_encoders(self):
         resp = self.send_encoder_read_command()
